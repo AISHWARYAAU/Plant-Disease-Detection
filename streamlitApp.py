@@ -2,10 +2,11 @@ import streamlit as st
 from PIL import Image
 import numpy as np
 import pandas as pd
-from tensorflow.keras.models import load_model
-from tensorflow.keras.preprocessing.image import img_to_array
 import matplotlib.pyplot as plt
 import seaborn as sns
+import tensorflow as tf
+from tensorflow.keras.models import load_model
+from tensorflow.keras.preprocessing.image import img_to_array
 import cv2
 
 # Set up the page layout
@@ -162,24 +163,28 @@ with st.sidebar:
         "Background_without_leaves": "No treatment needed.",
     }
 
-# Load the trained model
-model = load_model("myModel.h5")
+# Load the model once
+export_file_path = "./models/myModel.h5"
+try:
+    model = load_model(export_file_path)
+    st.sidebar.success("Model loaded successfully!")
+except Exception as e:
+    st.sidebar.error(f"Error loading model: {e}")
 
 # Function to preprocess the image
 def load_and_preprocess_image(image):
-    image = np.array(image)  # Convert PIL image to NumPy array
-    image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)  # Convert RGB to BGR
+    image = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)  # Convert RGB to BGR
     image = cv2.resize(image, (224, 224))  # Resize to model input size
     image = img_to_array(image)  # Convert to array
     image = np.expand_dims(image, axis=0)  # Expand dimensions for prediction
     image = image.astype('float32') / 255.0  # Normalize to [0, 1]
     return image
 
-# Prediction function
-def Plant_Disease_Detection(img_file):
+# Function to predict disease
+def Plant_Disease_Detection(img_file_path):
     try:
         # Load the image
-        image = Image.open(img_file).convert("RGB")  # Ensure image is in RGB mode
+        image = Image.open(img_file_path)
         preprocessed_image = load_and_preprocess_image(image)
 
         # Predict the class
@@ -195,41 +200,39 @@ def Plant_Disease_Detection(img_file):
         st.error(f"Error in prediction: {e}")
         return None, None, None
 
-# Upload the image
-uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "jpeg", "png"])
+# File uploader
+img_file = st.file_uploader("Upload Leaf Image", type=["jpg", "png", "jpeg"])
 
-if uploaded_file is not None:
-    # Display the uploaded image
-    st.image(uploaded_file, caption="Uploaded Image", use_column_width=True)
+if img_file is not None:
+    st.image(img_file, caption="Uploaded Image", use_column_width=True)
+    st.write("Classifying... Please wait.")
 
-    # Make prediction
-    predicted_class, confidence_score, probabilities = Plant_Disease_Detection(uploaded_file)
+    # Run prediction
+    predicted_class, confidence_score, probabilities = Plant_Disease_Detection(img_file)
 
     if predicted_class:
-        # Display prediction results
-        st.subheader("Prediction Results:")
-        st.write(f"**Predicted Class:** {predicted_class}")
-        st.write(f"**Confidence Score:** {confidence_score:.2f}")
+        st.subheader("Prediction Result:")
+        st.write(f"Predicted Class: **{predicted_class}**")
+        st.write(f"Confidence Score: **{confidence_score:.2f}**")
+        st.write("Description: " + classes_and_descriptions.get(predicted_class, "No description available."))
+        st.write("Recommended Action: " + remedies.get(predicted_class, "No specific action required."))
 
-        # Display probabilities
-        st.subheader("Prediction Probabilities:")
-        st.bar_chart(probabilities.T)
+        # Bar chart of probabilities
+        if probabilities is not None:
+            plt.figure(figsize=(10, 5))
+            sns.barplot(x=probabilities.columns, y=probabilities.values.flatten(), palette='viridis')
+            plt.title('Class Probability Distribution')
+            plt.xticks(rotation=90)
+            plt.ylabel('Probability')
+            plt.xlabel('Classes')
+            st.pyplot(plt)
 
-        # Display remedies
-        st.subheader("Recommended Remedies:")
-        remedy = remedies.get(predicted_class, "No specific remedy available.")
-        st.write(remedy)
-
-        # Show description
-        st.subheader("Description:")
-        description = classes_and_descriptions.get(predicted_class, "No description available.")
-        st.write(description)
-
-        # Plotting
-        plt.figure(figsize=(10, 5))
-        sns.barplot(x=probabilities.columns, y=probabilities.iloc[0], palette='viridis')
-        plt.title("Prediction Probabilities")
-        plt.xticks(rotation=90)
-        plt.ylabel("Probability")
-        st.pyplot(plt)
-
+# Footer
+footer = """
+<style>
+footer {
+    visibility: hidden;
+}
+</style>
+"""
+st.markdown(footer, unsafe_allow_html=True)
