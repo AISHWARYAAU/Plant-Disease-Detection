@@ -2,7 +2,6 @@ import streamlit as st
 from PIL import Image
 import numpy as np
 import pandas as pd
-import cv2
 from tensorflow.keras.models import load_model
 import matplotlib.pyplot as plt
 import seaborn as sns
