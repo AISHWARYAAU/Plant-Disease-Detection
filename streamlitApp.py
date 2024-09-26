@@ -198,10 +198,10 @@ elif input_method == "Camera Input":
         st.warning("Please click an image.")
 
 # model file path
-export_file_path = "./models/export.pkl"
+export_file_path = "myModel.h5"
 
 def Plant_Disease_Detection(img_file_path):
-    model = load_learner(export_file_path, "export.pkl")
+    model = load_learner(export_file_path, "myModel.h5")
     # Get prediction and confidence score
     prediction, idx, probabilities = model.predict(img_file_path)
     
