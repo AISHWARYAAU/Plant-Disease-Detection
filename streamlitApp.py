@@ -163,7 +163,7 @@ with st.sidebar:
     }
 
 # Load the trained model
-model = load_model("my_model.h5")
+model = load_model("myModel.h5")
 
 # Function to preprocess the image
 def load_and_preprocess_image(image):
