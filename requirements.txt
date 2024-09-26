@@ -1,6 +1,6 @@
-opencv-python
+opencv-python-headless  # Use this for environments without GUI support
+# opencv-python  # Uncomment if you need GUI support
 streamlit
-opencv-python
 tensorflow
 Pillow
 numpy
@@ -10,17 +10,5 @@ matplotlib
 aiofiles
 aiohttp
 asyncio
-opencv-python
-fastai
 torchvision
-tensorflow
-seaborn
 keras
-streamlit
-opencv-python
-tensorflow
-Pillow 
-numpy
-fastai
-
-
