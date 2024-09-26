@@ -9,4 +9,10 @@ torchvision
 tensorflow
 seaborn
 keras
-cv2
+streamlit
+opencv-python
+tensorflow
+Pillow  # For image processing
+numpy
+fastai
+
