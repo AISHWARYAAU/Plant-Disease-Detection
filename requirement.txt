@@ -1,3 +1,12 @@
+streamlit
+opencv-python
+tensorflow
+Pillow
+numpy
+fastai
+seaborn
+matplotlib
+
 aiofiles
 aiohttp
 asyncio
