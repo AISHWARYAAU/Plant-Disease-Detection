@@ -3,6 +3,7 @@ from PIL import Image
 import numpy as np
 import pandas as pd
 from tensorflow.keras.models import load_model
+from tensorflow.keras.preprocessing.image import img_to_array
 import matplotlib.pyplot as plt
 import seaborn as sns
 import cv2
@@ -146,43 +147,39 @@ with st.sidebar:
         "Raspberry___healthy": "No treatment needed.",
         "Soybean___healthy": "No treatment needed.",
         "Squash___Powdery_mildew": "Apply fungicides and improve air circulation.",
-        "Strawberry___Leaf_scorch": "Water adequately and apply fungicides.",
+        "Strawberry___Leaf_scorch": "Water adequately and apply appropriate fungicides.",
         "Strawberry___healthy": "No treatment needed.",
         "Tomato___Bacterial_spot": "Use resistant varieties and apply copper fungicides.",
         "Tomato___Early_blight": "Use fungicides and rotate crops.",
         "Tomato___Late_blight": "Use resistant varieties and apply fungicides.",
-        "Tomato___Leaf_Mold": "Improve ventilation and apply fungicides.",
-        "Tomato___Septoria_leaf_spot": "Use fungicides and rotate crops.",
-        "Tomato___Spider_mites Two-spotted_spider_mite": "Apply miticides and improve irrigation.",
-        "Tomato___Target_Spot": "Use fungicides and rotate crops.",
-        "Tomato___Tomato_Yellow_Leaf_Curl_Virus": "Control aphids and remove infected plants.",
-        "Tomato___Tomato_mosaic_virus": "Use disease-free seeds and remove infected plants.",
+        "Tomato___Leaf_Mold": "Improve air circulation and apply fungicides.",
+        "Tomato___Septoria_leaf_spot": "Use fungicides and remove affected leaves.",
+        "Tomato___Spider_mites Two-spotted_spider_mite": "Use insecticidal soap and promote beneficial insects.",
+        "Tomato___Target_Spot": "Apply fungicides and improve air circulation.",
+        "Tomato___Tomato_Yellow_Leaf_Curl_Virus": "Control insect vectors and remove infected plants.",
+        "Tomato___Tomato_mosaic_virus": "Remove infected plants and control aphids.",
         "Tomato___healthy": "No treatment needed.",
-        "Background_without_leaves": "No action required.",
+        "Background_without_leaves": "No treatment needed.",
     }
 
-# Load the model once
-export_file_path = "./models/myModel.h5"
-try:
-    model = load_model(export_file_path)
-    st.sidebar.success("Model loaded successfully!")
-except Exception as e:
-    st.sidebar.error(f"Error loading model: {e}")
+# Load the trained model
+model = load_model("my_model.h5")
 
 # Function to preprocess the image
 def load_and_preprocess_image(image):
-    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)  # Convert BGR to RGB
+    image = np.array(image)  # Convert PIL image to NumPy array
+    image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)  # Convert RGB to BGR
     image = cv2.resize(image, (224, 224))  # Resize to model input size
     image = img_to_array(image)  # Convert to array
     image = np.expand_dims(image, axis=0)  # Expand dimensions for prediction
     image = image.astype('float32') / 255.0  # Normalize to [0, 1]
     return image
 
-# Function to predict disease
-def Plant_Disease_Detection(img_file_path):
+# Prediction function
+def Plant_Disease_Detection(img_file):
     try:
         # Load the image
-        image = Image.open(img_file_path)
+        image = Image.open(img_file).convert("RGB")  # Ensure image is in RGB mode
         preprocessed_image = load_and_preprocess_image(image)
 
         # Predict the class
@@ -198,39 +195,41 @@ def Plant_Disease_Detection(img_file_path):
         st.error(f"Error in prediction: {e}")
         return None, None, None
 
-# File uploader
-img_file = st.file_uploader("Upload Leaf Image", type=["jpg", "png", "jpeg"])
+# Upload the image
+uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "jpeg", "png"])
 
-if img_file is not None:
-    st.image(img_file, caption="Uploaded Image", use_column_width=True)
-    st.write("Classifying... Please wait.")
+if uploaded_file is not None:
+    # Display the uploaded image
+    st.image(uploaded_file, caption="Uploaded Image", use_column_width=True)
 
-    # Run prediction
-    predicted_class, confidence_score, probabilities = Plant_Disease_Detection(img_file)
+    # Make prediction
+    predicted_class, confidence_score, probabilities = Plant_Disease_Detection(uploaded_file)
 
     if predicted_class:
-        st.subheader("Prediction Result:")
-        st.write(f"Predicted Class: **{predicted_class}**")
-        st.write(f"Confidence Score: **{confidence_score:.2f}**")
-        st.write("Description: " + classes_and_descriptions.get(predicted_class, "No description available."))
-        st.write("Recommended Action: " + remedies.get(predicted_class, "No specific action required."))
+        # Display prediction results
+        st.subheader("Prediction Results:")
+        st.write(f"**Predicted Class:** {predicted_class}")
+        st.write(f"**Confidence Score:** {confidence_score:.2f}")
 
-        # Bar chart of probabilities
-        if probabilities is not None:
-            plt.figure(figsize=(10, 5))
-            sns.barplot(x=probabilities.columns, y=probabilities.values.flatten(), palette='viridis')
-            plt.title('Class Probability Distribution')
-            plt.xticks(rotation=90)
-            plt.ylabel('Probability')
-            plt.xlabel('Classes')
-            st.pyplot(plt)
+        # Display probabilities
+        st.subheader("Prediction Probabilities:")
+        st.bar_chart(probabilities.T)
 
-# Footer
-footer = """
-<style>
-footer {
-    visibility: hidden;
-}
-</style>
-"""
-st.markdown(footer, unsafe_allow_html=True)
+        # Display remedies
+        st.subheader("Recommended Remedies:")
+        remedy = remedies.get(predicted_class, "No specific remedy available.")
+        st.write(remedy)
+
+        # Show description
+        st.subheader("Description:")
+        description = classes_and_descriptions.get(predicted_class, "No description available.")
+        st.write(description)
+
+        # Plotting
+        plt.figure(figsize=(10, 5))
+        sns.barplot(x=probabilities.columns, y=probabilities.iloc[0], palette='viridis')
+        plt.title("Prediction Probabilities")
+        plt.xticks(rotation=90)
+        plt.ylabel("Probability")
+        st.pyplot(plt)
+
