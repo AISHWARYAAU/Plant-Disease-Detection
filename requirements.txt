@@ -6,32 +6,20 @@ numpy
 fastai
 seaborn
 matplotlib
-
 aiofiles
 aiohttp
 asyncio
 opencv-python
 fastai
-# torch>=1.0.0
 torchvision
-# numpy==1.16.3
 tensorflow
 seaborn
 keras
 streamlit
 opencv-python
 tensorflow
-Pillow  # For image processing
+Pillow 
 numpy
 fastai
-
-streamlit==1.18.0
-opencv-python==4.6.0.66
-tensorflow==2.10.0
-Pillow==9.1.0
-numpy==1.21.6
-fastai==2.7.10
-seaborn==0.11.2
-matplotlib==3.5.1
 
 
