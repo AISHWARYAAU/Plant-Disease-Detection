@@ -18,7 +18,7 @@ st.caption(
 st.write("Try clicking a leaf image and watch how an AI Model will detect its disease.")
 
 with st.sidebar:
-    img = Image.open("./Images/leaf.png")
+    img = Image.open("./images/leaf.png")
     st.image(img)
     st.subheader("About ChromaticScan")
     st.write(
