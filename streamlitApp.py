@@ -5,6 +5,7 @@ import pandas as pd
 from tensorflow.keras.models import load_model
 import matplotlib.pyplot as plt
 import seaborn as sns
+import cv2
 
 # Set up the page layout
 st.set_page_config(page_title="ChromaticScan", page_icon=":camera:")
